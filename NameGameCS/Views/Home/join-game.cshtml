@@ -1,0 +1,79 @@
+@model NameGameCS.Models.JoinGameViewModel
+
+<body id="app" class="lobby2 flex-v rainbow-gradient-bg animate-rainbow"> 
+</body>
+<script type="text/babel">
+    function App() {
+        const [state, setState] = React.useState({
+            games : @Html.Raw(Json.Serialize(Model.Games)),
+            user : @Html.Raw(Json.Serialize(Model.User)),
+            selectedGame : null,
+        });
+
+        const con = React.useRef()
+
+        React.useEffect(()=>{
+            const newCon = new signalR.HubConnectionBuilder().withUrl("/SignalRHub").build();
+
+            newCon.on("refresh_join_game", function (user, message) {
+                console.log("refresh_join_game")
+                location.reload();
+            });
+
+            con.current = newCon
+        },[])
+        
+        function submit(deleteGame){
+            if (state.selectedGame){
+                if (deleteGame){
+                    socket.current.emit('delete_game',state.selectedGame)
+                    socket.current.emit('deletion_kick',state.selectedGame,'@Model.User.username')
+                    socket.current.emit('refresh_join_game')
+                } else { location.href=`join_game/${state.selectedGame}`}
+            } else {alert("select one")}
+        }
+            
+        function home(){
+            socket.current.disconnect()
+            location.href='/';
+        }
+
+        const gameOption = state.games.map(gameObject=>{return(
+            <div class={`option slight-v-gradient ${gameObject.game_id == state.selectedGame?"selected":""}`} onClick={()=>{
+                setState({
+                    ...state, 
+                    selectedGame:gameObject.game_id,
+                })
+            }}>
+                {gameObject.game_name}
+            </div>
+        )})
+
+        return(
+            <div>
+                <h1 class="heading subheading3">JOIN GAME</h1>
+                <div class="flex-v form pad-10pct">
+                    <div class="flex-v-start"> 
+                        <h1 class="heading subheading4">SELECT A GAME</h1>
+                        <div class="text-box" id="games">
+                            {state.games.length>0 && <div>{gameOption}</div>}
+                            {state.games.length==0 && <p class="option slight-v-gradient">No Games...</p>}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-h center">
+                    <button class="button1 button3 mar-1em" onClick={()=>{submit(false)}} disabled={state.games.length==0} id="join_game">Join Game</button>
+                    <button class="button1 button3 mar-1em" onClick={()=>{submit(true)}} disabled={state.games.length==0}>Delete Game</button>
+                </div>
+                <div class="flex-h center">
+                    {/* <button class="button1 button3 mar-1em" onClick={()=>{location.href='join_game'}}>Refresh</button> */}
+                    <button class="button1 button3 mar-1em" onClick={()=>{location.href='create_game'}}>Create Game</button>
+                    <button class="button1 button3 mar-1em" onClick={home}>Home</button>
+                </div>
+            </div>
+        )
+    }
+    ReactDOM.render(<App />, document.querySelector("#app"));
+
+</script>
+        

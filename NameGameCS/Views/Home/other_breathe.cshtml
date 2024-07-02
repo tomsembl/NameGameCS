@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html lang="en-us">
+    <head>
+        <meta charset="utf-8">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+        
+        <link rel="stylesheet" href="{{ url_for('static',filename='bootstrap.min.css') }}">
+itegrity="sha384-gH2yIJqKdNHPEq0n4Mqa/HGKIhSkIHeL5AyhkYV8i59U5AR6csBvApHHNl/vI1Bx" crossigin=nonymous">
+        <title>BreaTheFuak</title>
+        <link type="text/css" rel="stylesheet" href="~/css/breathe.css" />
+        <style id="style2">
+
+        </style>
+    </head>
+    <body>
+        <div id="titleDiv">
+            <h1>BreaTheFuak</h1>
+            <h4>Custom Breathing Exercise</h4>
+        </div>
+        <div id="parent">
+            <div id="section1">
+                <h4>Customise The Exercise</h4>
+                <!--<i>(values in seconds)</i>-->
+                <div id="timers">
+                </div>
+            </div>
+            <div id="section2">
+                <h1 id="breatheStep">&nbsp;</h1>
+                <div class="" id="floater"></div>
+                <div id="startStopDiv">
+                    <button id="startBtn" class="btn btn-light" onclick="start()">Start</button>
+                    <button class="btn btn-light" onclick="stop()">Stop</button>
+                </div>
+                
+            </div>
+        </div>
+        
+    </body>
+    <script>
+        var timers = {
+            "Exercise Duration" : 60,
+            "Breathe In" : 4,
+            "Hold In" : 4,
+            "Breathe Out" : 4,
+            "Hold Out" : 4,
+        }
+        const steps = [
+            "Breathe In",
+            "Hold In",
+            "Breathe Out",
+            "Hold Out",]
+
+        timersDiv = document.getElementById("timers")
+        for (var timer in timers) {
+            timersDiv.innerHTML += `
+            <div class="form-group">
+                <label for="${timer}">${timer}</label>
+                <div class="inline">
+                    <input type="text" name="${timer}" id="${timer}" class="form-control" value="${timers[timer]}"><span>s</span>
+                </div>
+            </div>`
+        }
+
+        var myInterval
+
+        function start(){
+            var time = 0
+            var listTimeCummul = 0
+            var timeTranslate = {}
+            var cycleTime = 0
+            const breatheStep = document.getElementById("breatheStep")
+            
+            for (var timer in timers) {
+                timers[timer] =  document.getElementById(timer).value
+            }
+
+            for (var step of steps) {
+                    stepTime = parseInt(timers[step])
+                    for (let i = listTimeCummul; i <= listTimeCummul+stepTime; i++) {
+                        timeTranslate[i]= [step,i - listTimeCummul + 1];
+                    }
+                    listTimeCummul += stepTime
+                }
+            cycleTime = listTimeCummul
+            document.getElementById("startBtn").setAttribute("disabled",true)
+            document.getElementById("floater").classList.add("animate")
+
+            time1=parseInt(timers[steps[0]])/cycleTime*100
+            time2=parseInt(timers[steps[1]])/cycleTime*100+time1
+            time3=parseInt(timers[steps[2]])/cycleTime*100+time2
+            document.getElementById("style2").innerHTML = `@@keyframes ripple{
+                        0%{transform: scale(0.5);}
+                        ${time1}%{transform: scale(1.4);}
+                        ${time2}%{transform: scale(1.4);}
+                        ${time3}%{transform: scale(0.5);}
+                        100%{transform: scale(0.5);}
+                    }
+                    .animate{animation: ripple ${cycleTime}s infinite;}`
+
+            function oneSecondFunc() {
+                //console.log(time)
+                breatheTimeAndStep = timeTranslate[time%cycleTime].toString().replace(',',' &nbsp; ')
+                breatheStep.innerHTML = breatheTimeAndStep
+                time++
+            }
+
+            oneSecondFunc()
+            myInterval = setInterval(oneSecondFunc, 1000)
+
+            setTimeout(() => {
+                stop()
+            }, parseInt(timers["Exercise Duration"])*1000);
+            
+        }
+
+        function stop(){
+            clearInterval(myInterval)
+            document.getElementById("breatheStep").innerHTML = "&nbsp;"
+            document.getElementById("floater").classList.remove("animate")
+            document.getElementById("startBtn").removeAttribute("disabled")
+        }
+    </script>
+</html>
