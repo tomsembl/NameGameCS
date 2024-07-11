@@ -7,9 +7,9 @@ namespace NameGameCS.Filters {
     
 
     public class UserAuthenticationFilter : IAsyncActionFilter {
-        private readonly DBLogic _dbLogic;
+        private readonly EFLogic _dbLogic;
 
-        public UserAuthenticationFilter(DBLogic dbLogic) {
+        public UserAuthenticationFilter(EFLogic dbLogic) {
             _dbLogic = dbLogic;
         }
 
@@ -21,13 +21,10 @@ namespace NameGameCS.Filters {
                 await next();
                 return;
             }
-            var controller = context.Controller as HomeController;
-            if (controller != null) {
-                var user = controller.getUserFromCookie(context.HttpContext.Request);
-                if (user.user_id == 0) {
-                    context.Result = new RedirectToActionResult("Home", "Home", null);
-                    return;
-                }
+            var user = _dbLogic.getUserFromCookie(context.HttpContext.Request);
+            if (user.user_id == 0) {
+                context.Result = new RedirectToActionResult("Home", "Home", null);
+                return;
             }
             await next();
         }

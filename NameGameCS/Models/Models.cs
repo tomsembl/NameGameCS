@@ -15,6 +15,8 @@ namespace NameGameCS.Models {
         public string last_ip { get; set; }
     }
 
+
+
     public class UserInstance {
         [Key]
         public int user_inst_id { get; set; }
@@ -44,6 +46,8 @@ namespace NameGameCS.Models {
         public bool round2 { get; set; }
         public bool round3 { get; set; }
         public bool round4 { get; set; }
+        [ForeignKey("Team")]
+        public int current_team_id { get; set; }
         public DateTime date_created { get; set; } = DateTime.Now;
     }
 
@@ -55,6 +59,8 @@ namespace NameGameCS.Models {
         [StringLength(40)]
         public string team_name { get; set; }
         public int order { get; set; }
+        [ForeignKey("UserInstance")]
+        public int current_user_inst_id { get; set; }
     }
 
     public class Name {
@@ -99,7 +105,7 @@ namespace NameGameCS.Models {
         [ForeignKey("Name")]
         public int name_id { get; set; }
         [StringLength(40)]
-        public required string name { get; set; }
+        public string name { get; set; }
         public bool success { get; set; }
         public int round { get; set; }
         public DateTime time_start { get; set; }
@@ -113,5 +119,29 @@ namespace NameGameCS.Models {
         public int current_stop { get; set; }
         public int number_starts { get; set; }
         public int current_start { get; set; }
+    }
+
+    public class Scores { 
+        public IEnumerable<string> teams { get; set; }
+        public IEnumerable<int> teamScores { get; set; }
+        public IEnumerable<string> players { get; set; }
+        public IEnumerable<int> playerScores { get; set; }
+    }
+
+    public enum GameStage {
+        lobby = 1,
+        write_names = 2,
+        pick_teams = 3,
+        name_game = 4,
+        graphs = 5,
+    }
+
+    public class CurrentTurn { 
+        public int team_id { get; set; }
+        public int user_id { get; set; }
+    }
+
+    public class TurnOrder { 
+        public List<int> user_ids { get; set; }
     }
 }

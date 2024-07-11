@@ -1,80 +1,112 @@
-<!DOCTYPE html>
-<html lang="en" class="white-html">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
-        <meta name="mobile-web-app-capable" content="yes">
-        <title>NameGame</title>
-		<link rel="stylesheet" type="text/css" href="/static/style.css">
-		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-		<script type="text/javascript" src="{{ url_for('static',filename='socket.io.js') }}"></script>
-		<script type="text/javascript" src="{{ url_for('static',filename='chart.js') }}"></script>
-	</head>
-	<body class="lobby2">
-		<h1 class="heading subheading3">Scores - Round {{round}}</h1>
-		<div class="flex-h vmar2">
-			{% if game_deets['stage'] < 5 %} <button class="button1 button3" onclick="done()" id="return_to_game">Return to Game</button>
-				{% else %}
-				<h1 id="game_over" class="heading subheading4 pad-10pct">GAME OVER</h1>
-				{% endif %}
-		</div>
-		<div class="flex-v center vmar2">
-			<h1 class="heading subheading4 pad-05em">Teams</h1>
-			<canvas id="team_chart"></canvas>
-		</div>
-		<div class="flex-v center vmar2">
-			<h1 class="heading subheading4 pad-05em">Players</h1>
-			<canvas id="player_chart"></canvas>
-		</div>
-		<div class="flex-h vmar2">
-			{% if game_deets['stage'] < 5 %} <button class="button1 button3" onclick="done()">Return to Game</button>
-				{% else %}
-				<h1 class="heading subheading4 pad-10pct">GAME OVER</h1>
-				{% endif %}
-		</div>
-		<div class="flex-h mar-1em">
-			<button class="button2" onclick="location.href='/';">Home</button>
-		</div>
-	</body>
-	<script>
-		const socket = io.connect(window.origin, { query: "game_id={{game_id}}&user_id={{user_id}}" })
+@model NameGameCS.Models.GraphsViewModel
 
-		socket.on('emit_scores', function (msg) {
-			var is_team = msg[1]
-			var xValues = msg[0][0]
-			var yValues = msg[0][1]
-			new_chart(is_team ? "team_chart" : "player_chart", xValues, yValues)
-		})
+<body id="app" class="lobby2 white-html">
+</body>
+<script type="text/babel">
+    function App() {
+        const [state, setState] = React.useState({
+            game: @Html.Raw(Json.Serialize(Model.Game)),
+            scores: @Html.Raw(Json.Serialize(Model.Scores))
+        })
 
-		socket.on('emit_line_graph_data', function (msg) {
-			console.log(msg)
-		})
+        const con = React.useRef()
 
-		socket.emit("emit_scores", "{{game_id}}", "{{user_id}}", true)
-		socket.emit("emit_scores", "{{game_id}}", "{{user_id}}", false)
-		//socket.emit("emit_line_graph_data", "{{game_id}}", "{{user_id}}", true)
-		//socket.emit("emit_line_graph_data", "{{game_id}}", "{{user_id}}", false)
+        React.useEffect(()=> {
+            const newCon = new signalR.HubConnectionBuilder().withUrl("/SignalRHub").build();
 
-		function new_chart(chart_name, xValues, yValues) {
-			colours = ['rgba(240,50,50,0.75)', 'rgba(255,180,50,0.75)', 'rgba(255,220,90,0.75)', 'rgba(100,210,80,0.75)', 'rgba(90,165,255,0.75)', 'rgba(170,90,240,0.75)']
-			colours = colours.concat(colours).concat(colours)
-			colours = (chart_name === "team_chart") ? colours : colours.reverse()
-			new Chart(chart_name, {
-				type: "horizontalBar",
-				data: {
-					labels: xValues,
-					datasets: [{
-						fill: false,
-						lineTension: 0,
-						backgroundColor: colours,
-						borderColor: "rgba(0,0,255,0.1)",
-						data: yValues
-					}]
-				},
-				options: { legend: { display: false }, scales: { xAxes: [{ ticks: { beginAtZero: true } }], yAxes: [{ ticks: { fontSize: 20 } }] } } //min: 6, max: 16, 
-			});
-		}
+            newCon.on("message", function (user, msg) {
+                console.log(msg)
+            });
 
-		function done() { location.href = "/name_game/{{game_id}}" }
-	</script>
-</html>
+            newCon.on("EmitScores", function (user, msg) {
+                setState(prevState => ({
+                    ...prevState,
+                    scores: JSON.parse(msg)
+                }))
+                new_chart(is_team ? "team_chart" : "player_chart", xValues, yValues)
+            });
+
+            newCon.onclose(() => {
+                console.log("Connection lost. Attempting to reconnect...");
+                startConnection();
+            });
+
+            const startConnection = () => {
+                newCon.start().then(() => {
+                    console.log("Connected");
+                }).catch(err => {
+                    console.error('Error while establishing connection:', err);
+                    setTimeout(startConnection, 5000); // Retry after 5 seconds
+                });
+            };
+
+            con.current = newCon;
+            startConnection();
+
+            return () => {
+                if (con.current) {
+                    con.current.stop().then(() => console.log("Connection stopped."));
+                }
+            };
+        },[])
+
+        React.useEffect(()=> {
+            console.log(state.scores)
+            new_chart("team_chart", state.scores.teams, state.scores.teamScores)
+            new_chart("player_chart", state.scores.players, state.scores.playerScores)
+        },[state.scores])
+
+        function new_chart(chart_name, xValues, yValues) {
+            console.log(chart_name, xValues, yValues)
+            let colours = ['rgba(240,50,50,0.75)', 'rgba(255,180,50,0.75)', 'rgba(255,220,90,0.75)', 'rgba(100,210,80,0.75)', 'rgba(90,165,255,0.75)', 'rgba(170,90,240,0.75)']
+            colours = colours.concat(colours).concat(colours)
+            colours = (chart_name === "team_chart") ? colours : colours.reverse()
+            new Chart(chart_name, {
+                type: "horizontalBar",
+                data: {
+                    labels: xValues,
+                    datasets: [{
+                        fill: false,
+                        lineTension: 0,
+                        backgroundColor: colours,
+                        borderColor: "rgba(0,0,255,0.1)",
+                        data: yValues
+                    }]
+                },
+                options: { legend: { display: false }, scales: { xAxes: [{ ticks: { beginAtZero: true } }], yAxes: [{ ticks: { fontSize: 20 } }] } } //min: 6, max: 16,
+            });
+        }
+
+        function done() { location.href = `/name_game/${@Model.Game.game_id}` }
+
+        const Banner = (
+            <div class="flex-h vmar2" >
+                {state.game.stage < 5 &&
+                    <button class="button1 button3" onClick={done} id="return_to_game"> Return to Game </button>
+                ||
+                    <h1 id="game_over" class="heading subheading4 pad-10pct" > GAME OVER </h1>
+                }
+            </div>
+        )
+
+        return(
+            <React.Fragment>
+                <h1 class= "heading subheading3" > {`Scores - Round ${state.game.round}`} </h1>
+                {Banner}
+                <div class="flex-v center vmar2" >
+                    <h1 class="heading subheading4 pad-05em" > Teams </h1>
+                    <canvas id = "team_chart" > </canvas>
+                </div>
+                <div class="flex-v center vmar2" >
+                    <h1 class="heading subheading4 pad-05em" > Players </h1>
+                    <canvas id = "player_chart" > </canvas>
+                </div>
+                {Banner}
+                <div class="flex-h mar-1em" >
+                    <button class="button2" onClick={() => location.href='/'} > Home </button>
+                </div>
+            </React.Fragment>
+        )
+    }
+    ReactDOM.render(<App />, document.querySelector("#app"));
+</script>

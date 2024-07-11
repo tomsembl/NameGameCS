@@ -1,67 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="mobile-web-app-capable" content="yes">
-        <title>Change User</title>
-        <link rel="stylesheet" type= "text/css" href= "{{ url_for('static',filename='style.css') }}">
-        <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-        <script type="text/javascript" src="{{ url_for('static',filename='socket.io.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static',filename='react.production.min.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static',filename='react-dom.production.min.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static',filename='babel.min.js') }}"></script>
-    </head>
-    <body>
-        <div id="app"></div>
-    </body>
-    <script type="text/babel">
-        function App() {
-            const [state, setState] = React.useState({
-                users: {{users|safe}},
-                selectedUserID: null
-            })
+@model NameGameCS.Models.ChangeUserViewModel
 
-            function changeUser() {
-                if (state.selectedUserID) {
-                    const user = state.users.find((user) => `${user.user_id}` === state.selectedUserID);
+<body id="app" class="lobby2 flex-v rainbow-gradient-bg animate-rainbow">
+</body>
+<script type="text/babel">
+    function App() {
+        const [state, setState] = React.useState({
+            users: @Html.Raw(Json.Serialize(Model.Users)),
+            selectedUserID: null
+        });
+
+        function changeUser() {
+            if (state.selectedUserID) {
+                const user = state.users.find((user) => `${user.user_id}` === state.selectedUserID);
+                if (user) {
                     document.cookie = `user_id=${state.selectedUserID}`;
                     document.cookie = `username=${user.username}`;
                     window.location.href = "/";
                 }
             }
-
-            function onChange(event) {
-                setState((prevState) => ({
-                    ...prevState,
-                    selectedUserID: event.target.value
-                }))
-            }
-
-            function home() {
-                window.location.href = "/";
-            }
-
-            return(
-                <body id="body" class="lobby2 flex-v rainbow-gradient-bg animate-rainbow">
-                    <h1 class="heading subheading3">Change User</h1>
-                    <div class="flex-v center vmar">
-                        <h4 class="heading subheading4 pad-05em">
-                            {"Current User: {{user_id}} - {{username}}"}
-                        </h4>
-                    </div>
-                    <div class="flex-h center vmar">
-                        <select class="change-user-select" onChange={onChange} value={state.selectedUserID}>
-                            {state.users.map((user) => (
-                                <option value={user.user_id}>{`${user.user_id} - ${user.username}`}</option>
-                            ))}
-                        </select>
-                        <button class="button2 change-user-button" onClick={changeUser}>Change User</button>
-                    </div>
-                    <button class="button2 self-centered" onClick={home}>Home</button>
-                </body>
-            )
         }
-        ReactDOM.render(<App />, document.querySelector("#app"));
-    </script>
-</html>                  
+
+        function onChange(event) {
+            setState((prevState) => ({
+                ...prevState,
+                selectedUserID: event.target.value
+            }));
+        }
+
+        function home() {
+            window.location.href = "/";
+        }
+
+        return (
+            <React.Fragment>
+                <h1 className="heading subheading3">Change User</h1>
+                <div className="flex-v center vmar">
+                    <h4 className="heading subheading4 pad-05em">
+                        {`Current User: ${"@Model.User.user_id"} - ${"@Model.User.username"}`}
+                    </h4>
+                </div>
+                <div className="flex-h center vmar">
+                    <select className="change-user-select" onChange={onChange} value={state.selectedUserID}>
+                        {state.users.map((user) => (
+                            <option key={user.user_id} value={user.user_id}>{`${user.user_id} - ${user.username}`}</option>
+                        ))}
+                    </select>
+                    <button className="button2 change-user-button" onClick={changeUser}>Change User</button>
+                </div>
+                <button className="button2 self-centered" onClick={home}>Home</button>
+            </React.Fragment>
+        );
+    }
+    ReactDOM.render(<App />, document.querySelector("#app"));
+</script>

@@ -4,9 +4,23 @@
         console.log(`${user}: ${message}`);
     });
 
-    connection.start().catch(function (err) {
-        return console.error(err.toString());
+    newConnewCon.onclose(() => {
+        console.log("Connection lost. Attempting to reconnect...");
+        startConnection();
     });
+
+    const startConnection = () => {
+        newCon.start().then(() => {
+            console.log("Connected");
+        }).catch(err => {
+            console.error('Error while establishing connection:', err);
+            setTimeout(startConnection, 5000); // Retry after 5 seconds
+        });
+    };
+
+    con.current = newCon;
+    startConnection();
+
 
     // Example of sending a message
     document.getElementById("sendButton").addEventListener("click", function (event) {

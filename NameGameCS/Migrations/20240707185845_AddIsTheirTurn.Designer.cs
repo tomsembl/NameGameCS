@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NameGameCS;
 
@@ -10,9 +11,11 @@ using NameGameCS;
 namespace NameGameCS.Migrations
 {
     [DbContext(typeof(NameGameDbContext))]
-    partial class NameGameDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240707185845_AddIsTheirTurn")]
+    partial class AddIsTheirTurn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.6");
@@ -77,9 +80,6 @@ namespace NameGameCS.Migrations
                 {
                     b.Property<int>("game_id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("current_team_id")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("date_created")
@@ -176,10 +176,10 @@ namespace NameGameCS.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("current_user_inst_id")
+                    b.Property<int>("game_id")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("game_id")
+                    b.Property<bool>("isTheirTurn")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("order")
@@ -258,6 +258,9 @@ namespace NameGameCS.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("game_id")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("isTheirTurn")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("order")

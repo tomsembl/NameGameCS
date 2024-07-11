@@ -8,6 +8,21 @@ namespace NameGameCS {
         public NameGameDbContext()
             : base() {
             this.Database.Migrate();
+            if (this.DefaultNames.Count() == 0) {
+                IEnumerable<DefaultName> defaultNamesList =  DefaultNamesList.names.Select(name => new DefaultName { name = name });
+                this.DefaultNames.AddRange(defaultNamesList);
+                this.SaveChanges();
+            }
+            if (this.Mp3Order.Count() == 0) {
+                Mp3Order mp3Order = new Mp3Order {
+                    number_stops = 13,
+                    current_stop = 2,
+                    number_starts = 18,
+                    current_start = 6
+                };
+                this.Mp3Order.Add(mp3Order);
+                this.SaveChanges();
+            }
         }
 
         public DbSet<User> Users { get; set; }
