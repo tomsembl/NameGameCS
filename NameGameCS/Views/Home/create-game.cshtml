@@ -10,10 +10,11 @@
                 <p class="required">&nbsp;*</p>
             </div>
             <input class="input" type="text" id="game_name" name="game_name" placeholder="Insert Name Here" value="" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Insert Name Here'" maxlength="40" autocomplete="off">
+            <div class="flex-h-left" style="margin-top: 15px">
                 <label for="number_teams" class="label label1">Number of Teams</label>
-            <div class="flex-h-left">
-                <input class="range" type="range" id="number_teams" name="number_teams" value="2" max="5" min="1" oninput="this.nextElementSibling.value = this.value">
-                <output>2</output>
+            </div>
+            <input class="range" type="range" id="number_teams" name="number_teams" value="2" max="5" min="1" oninput="this.nextElementSibling.value = this.value">
+            <output>2</output>
             </div>
             <label for="number_names" class="label label1">Each Player Submits</label>
             <div class="flex-h-left">
