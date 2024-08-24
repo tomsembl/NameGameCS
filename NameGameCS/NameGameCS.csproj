@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <Folder Include="Migrations\" />
+    <Folder Include="wwwroot\var\.well-known\acme-challenge\" />
   </ItemGroup>
 
   <ItemGroup>
