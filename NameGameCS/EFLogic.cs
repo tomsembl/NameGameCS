@@ -344,7 +344,7 @@ namespace NameGameCS {
             return await _dbContext.Names.FirstOrDefaultAsync(x => x.name_id == name_id);
         }
 
-        public async Task ScoreAnswer(Game game, User user, Name name, bool success) {
+        public async Task InitAnswer(Game game, User user, Name name) {
             UserInstance userInstance = await _dbContext.UserInstances.FirstAsync(x => x.user_id == user.user_id && x.game_id == game.game_id);
             Answer answer = new Answer {
                 game_id = game.game_id,
@@ -352,21 +352,28 @@ namespace NameGameCS {
                 name_id = name.name_id,
                 name = name.name,
                 team_id = userInstance.team_id,
-                success = success,
                 round = game.round,
+                time_start = DateTime.Now,
             };
             await _dbContext.Answers.AddAsync(answer);
             await _dbContext.SaveChangesAsync();
         }
 
+        public async Task ScoreAnswer(Game game, User user, Name name, bool success) {
+            UserInstance userInstance = await _dbContext.UserInstances.FirstAsync(x => x.user_id == user.user_id && x.game_id == game.game_id);
+            Answer answer = await _dbContext.Answers.OrderByDescending(x => x.answer_id).FirstAsync(x => x.user_inst_id == userInstance.user_inst_id && x.name_id == name.name_id && x.round == game.round);
+            _dbContext.Update(answer);
+            answer.success = success;
+            answer.time_finish = DateTime.Now;
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task<Mp3Order> GetMp3Order() {
             Mp3Order mp3Order = await _dbContext.Mp3Order.FirstAsync();
-            _ = Task.Run(async () => {
-                _dbContext.Update(mp3Order);
-                mp3Order.current_stop = (mp3Order.current_stop + 1) % mp3Order.number_stops;
-                mp3Order.current_start = (mp3Order.current_start + 1) % mp3Order.number_starts;
-                await _dbContext.SaveChangesAsync();
-            });
+            _dbContext.Update(mp3Order);
+            mp3Order.current_stop = (mp3Order.current_stop + 1) % mp3Order.number_stops;
+            mp3Order.current_start = (mp3Order.current_start + 1) % mp3Order.number_starts;
+            await _dbContext.SaveChangesAsync();
             return mp3Order;
         }
 
@@ -387,7 +394,11 @@ namespace NameGameCS {
 
         public async Task EndTurn(Game game, User user) {
             UserInstance userInstance = await _dbContext.UserInstances.FirstAsync(x => x.user_id == user.user_id && x.game_id == game.game_id);
-            Turn turn = await _dbContext.Turns.FirstAsync(x => x.user_inst_id == userInstance.user_inst_id && x.game_id == game.game_id && x.isActive);
+            Turn turn = await _dbContext.Turns.FirstOrDefaultAsync(x => x.user_inst_id == userInstance.user_inst_id && x.game_id == game.game_id && x.isActive);
+            if (turn == null) {
+                //logger.LogError($"No active turn found for user {user.username} in game {game.game_id}");
+                return;
+            }
             _dbContext.Update(turn);
             turn.isActive = false;
             turn.time_finish = DateTime.Now;
@@ -413,18 +424,32 @@ namespace NameGameCS {
         public async Task<Team> GetTeam(int team_id) {
             return await _dbContext.Teams.FirstOrDefaultAsync(x => x.team_id == team_id);
         }
+
+        //GetNameGameViewModel
+        public async Task<NameGameViewModel> GetNameGameViewModel(Game game, User user) {
+            NameGameViewModel model = new NameGameViewModel();
+            model.User = user;
+            model.Game = game;
+            model.UserInstance = await GetOrAddUserInstance(user, game);
+            model.Teams = (await GetTeams(game)).ToList();
+            model.Players = await GetPlayers(game);
+            model.TeamMembers = await GetTeamMembers(game);
+            model.CurrentTurn = await GetCurrentTurn(game);
+            model.TurnOrder = await GetTurnOrder(game);
+            return model;
+        }
     }
-/*
-    public class EFLogicFactory {
-        private readonly IServiceProvider _serviceProvider;
+    /*
+        public class EFLogicFactory {
+            private readonly IServiceProvider _serviceProvider;
 
-        public EFLogicFactory(IServiceProvider serviceProvider) {
-            _serviceProvider = serviceProvider;
-        }
+            public EFLogicFactory(IServiceProvider serviceProvider) {
+                _serviceProvider = serviceProvider;
+            }
 
-        public EFLogic CreateEFLogic() {
-            return new EFLogic(_serviceProvider.GetRequiredService<NameGameDbContext>());
-        }
-    }*/
+            public EFLogic CreateEFLogic() {
+                return new EFLogic(_serviceProvider.GetRequiredService<NameGameDbContext>());
+            }
+        }*/
 }
 

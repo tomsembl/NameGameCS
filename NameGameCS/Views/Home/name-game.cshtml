@@ -56,9 +56,10 @@
                         ...prevState,
                         connected: true,
                     }))
+                    newCon.send("ReSyncState")
                 }).catch(err => {
                     console.error('Error while establishing connection:', err);
-                    setTimeout(startConnection, 5000); // Retry after 5 seconds
+                    setTimeout(startConnection, 3000);
                 });
             };
 
@@ -124,7 +125,6 @@
 
             newCon.on('EmitStartTimer', function (user, msg) {
                 if (!myTurnRef.current) {
-                    console.log("this should only run for idle players", myTurnRef.current)
                     startCountdown(false)
                 }
             })
@@ -135,7 +135,6 @@
 
             newCon.on('EmitPreviousName', function (user, msg) {
                 setPreviousName(msg)
-                console.log
             })
 
             newCon.on('EmitMp3Order', function (user, msg) {
@@ -144,8 +143,13 @@
                 audio2.current = new Audio(`/media/stop/${mp3Order.current_stop}.mp3`);
             })
 
+            newCon.on('EmitReSyncState', function (user, msg) {
+                reSyncState(JSON.parse(msg))
+            })
+
             newCon.onclose(() => {
-                console.log("Connection lost. Attempting to reconnect...");
+                console.warn("Connection lost. Attempting to reconnect...");
+                setState(prevState=>({...prevState, connected: false}))
                 startConnection();
             });
 
@@ -164,7 +168,30 @@
             if (state.myTurn && state.connected) {
                 your_turn()
             }
-        }, [state.myTurn,state.connected])
+        }, [state.myTurn, state.connected])
+
+        function reSyncState(model){
+            setState(prevState=>{
+                return {
+                    ...prevState,
+                    gameID: model.Game.game_id,
+                    userID: model.User.user_id,
+                    teamID: model.UserInstance.team_id,
+                    myTurn: (model.User.user_id == model.CurrentTurn.user_id),
+                    currentRound: model.Game.round,
+                    currentPlayerID: model.CurrentTurn.user_id,
+                    currentTeamID: model.CurrentTurn.team_id,
+                    currentPlayer: model.Players[model.CurrentTurn.user_id],
+                    players: model.Players,
+                    numPlayers: model.Players.length,
+                    teams: model.Teams,
+                    teammembers: model.TeamMembers,
+                    turnOrder: model.TurnOrder.user_ids,
+                    connected: true,
+                }
+            
+            })
+        }
 
         function updateCurrentTurn(current_turn_user_id, current_team_id) {
             setState(prevState => {
@@ -221,6 +248,8 @@
                 whosUpVisible: false,
                 startButtonEnabled: true,
             }))
+            alert("vibrate")
+            navigator.vibrate(500)
         }
 
         function decrementCountdown(is_player = true) {
@@ -310,7 +339,7 @@
             fetch(`/stop_timer`, { method: "POST" })
             endCountdown()
             end_turn(names_ran_out)
-            if (!names_ran_out) { console.log("conceded") }
+            //if (!names_ran_out) { console.log("conceded") }
         }
 
         function getPhaseNumber(currentPlayer, myTeamsTurn, myTurn) {
@@ -363,7 +392,7 @@
         )
 
         function Players() {
-            console.log("state.turnOrder",state.turnOrder)
+            //console.log("state.turnOrder",state.turnOrder)
             return (
                 <div class="flex-v-start vw50">
                     <h1 class="heading subheading4">Players</h1>
@@ -425,7 +454,7 @@
                 </div>}
                 <div class="flex-h mar-1em">
                     <button class="button2" onClick={() => { location.href = '/'; }}>Home</button>
-                    <button class="button2" onClick={() => { console.log(state)}}>State</button>
+                    {/*<button class="button2" onClick={() => { console.log(state)}}>State</button>*/}
                     {state.myTurn && <button id="skip_button" class="button2" onClick={() => { skipName() }}>Skip</button>}
                 </div>
             </div>

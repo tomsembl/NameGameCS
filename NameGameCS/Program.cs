@@ -13,12 +13,7 @@ builder.Services.AddScoped<OutboundSignalR>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 builder.Services.AddMvc(options => {
-    // If you decide to apply the filter globally, you can do so here
-    // options.Filters.Add(typeof(UserAuthenticationFilter));
 });
-/*builder.Services.AddDbContext<NameGameDbContext>(options =>
-    options.UseSqlite("NameGame.db"));
-builder.Services.AddScoped<EFLogicFactory>();*/
 
 var app = builder.Build();
 

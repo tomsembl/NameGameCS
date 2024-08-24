@@ -154,16 +154,10 @@ namespace NameGameCS {
         [HttpGet]
         [Route("/name_game/{game_id:int}")]
         public async Task<IActionResult> name_game(int game_id) {
-            NameGameViewModel model = new NameGameViewModel();
-            model.User = _efLogic.getUserFromCookie(Request);
-            model.Game = await _efLogic.GetGame(game_id);
-            if (model.Game == null) return Redirect("/join_game");
-            model.UserInstance = await _efLogic.GetOrAddUserInstance(model.User, model.Game);
-            model.Teams = (await _efLogic.GetTeams(model.Game)).ToList();
-            model.Players = await _efLogic.GetPlayers(model.Game);
-            model.TeamMembers = await _efLogic.GetTeamMembers(model.Game);
-            model.CurrentTurn = await _efLogic.GetCurrentTurn(model.Game);
-            model.TurnOrder = await _efLogic.GetTurnOrder(model.Game);
+            User user = _efLogic.getUserFromCookie(Request);
+            Game game = await _efLogic.GetGame(game_id);
+            if (game == null) return Redirect("/join_game");
+            NameGameViewModel model = await _efLogic.GetNameGameViewModel(game, user);
             return View("name-game", model);
         }
 
@@ -298,7 +292,6 @@ namespace NameGameCS {
             User user = _efLogic.getUserFromCookie(Request);
             Game game = await _efLogic.getGameFromCookie(Request);
             Name name = await _efLogic.GetNameById(name_id);
-            Console.WriteLine($"score_answer: {name.name} {is_success}");
             await _efLogic.ScoreAnswer(game, user, name, is_success);
             await _outboundSignalR.EmitScoreAnswer("score_answer", game, user, name, is_success, is_skip);
             return new StatusCodeResult(200);

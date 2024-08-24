@@ -113,6 +113,7 @@ namespace NameGameCS {
                 return;
             }
             Name name = names[new Random().Next(names.Count)];
+            await _efLogic.InitAnswer(game, user, name);
             string json = JsonConvert.SerializeObject(name);
             IClientProxy? userGroup = getGroup($"user{user.user_id}");
             if (userGroup == null) return;

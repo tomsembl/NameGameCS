@@ -78,6 +78,15 @@ namespace NameGameCS {
             await Clients.Caller.SendAsync("EmitMp3Order", "EmitMp3Order()", json);
         }
 
+        public async Task ReSyncState() {
+            HttpContext? httpContext = Context.GetHttpContext();
+            User user = _efLogic.getUserFromCookie(httpContext.Request);
+            Game game = await _efLogic.getGameFromCookie(httpContext.Request);
+            NameGameViewModel model = await _efLogic.GetNameGameViewModel(game, user);
+            string json = JsonConvert.SerializeObject(model);
+            await Clients.Caller.SendAsync("ReSyncState", "ReSyncState()", json);
+        }
+
         public async override Task OnConnectedAsync() {
             try { 
                 HttpContext? httpContext = Context.GetHttpContext();
