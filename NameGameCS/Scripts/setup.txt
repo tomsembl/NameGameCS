@@ -1,0 +1,31 @@
+#Download and Install .NET: Use the following commands to install .NET on your Raspberry Pi:
+curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel STS
+echo 'export DOTNET_ROOT=$HOME/.dotnet' >> ~/.bashrc
+echo 'export PATH=$PATH:$HOME/.dotnet' >> ~/.bashrc
+source ~/.bashrc
+
+#verify
+dotnet --version
+
+#set up nginx
+sudo apt update
+sudo apt install nginx
+
+sudo nano /etc/nginx/sites-available/default
+#use the "default" file from scripts
+sudo systemctl restart nginx
+
+#set up service to run dotnet app
+sudo nano /etc/systemd/system/namegame.service
+#use the file from the scripts folder
+sudo systemctl start namegame
+
+#give the www-data user access to all the required files
+sudo chmod -R 775 /usr/local/bin
+sudo chown -R www-data:www-data /usr/local/bin
+
+#to live debug namegame service:
+sudo systemctl restart namegame
+sudo journalctl -u namegame -f
+
+
