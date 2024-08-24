@@ -1,0 +1,122 @@
+﻿@font-face {
+    font-family: 'Poppins';
+    src: url('/media/poppins.woff2') format('woff2');
+}
+
+body {
+    margin: 50px;
+    font-family: "Poppins";
+}
+
+h1, h4, h6, p {
+    align-items: center;
+    color: white;
+    font-weight: 600;
+}
+
+i {
+    color: white;
+}
+
+#timers {
+    margin-top: 20px;
+    margin-bottom: 50px;
+    width: 16ch;
+}
+
+label {
+    font-weight: bold;
+    margin-top: 10px;
+    color: white;
+}
+
+input[type=text] {
+    width: 6ch;
+    padding-right: 1em;
+}
+
+#parent {
+    border-radius: 15px;
+    padding: 50px;
+    display: flex;
+    background-image: linear-gradient(rgb(216, 174, 255),rgb(124, 183, 255));
+    filter: drop-shadow(10px 10px 9px #b6cae4);
+}
+
+@media screen and (orientation: portrait) {
+    #parent {
+        flex-direction: column-reverse
+    }
+
+    #section2 {
+        margin-bottom: 70px
+    }
+
+    body {
+        margin: 30px;
+    }
+}
+
+@media screen and (orientation: landscape) {
+    #parent {
+        flex-direction: row;
+    }
+}
+
+#titleDiv {
+    border-radius: 15px;
+    padding-inline: 50px;
+    padding-block: 20px;
+    margin-bottom: 20px;
+    background-image: linear-gradient(rgb(128, 185, 255),rgb(216, 171, 255));
+    width: 29ch;
+    filter: brightness( );
+    filter: drop-shadow(10px 10px 9px #b6cae4);
+}
+
+#section2 {
+    align-self: center;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#breatheStep {
+    -webkit-transition: opacity .5s ease-in-out;
+    -moz-transition: opacity .5s ease-in-out;
+    -ms-transition: opacity .5s ease-in-out;
+    -o-transition: opacity .5s ease-in-out;
+    transition: opacity .5s ease-in-out;
+}
+
+#floater {
+    flex-grow: 1;
+    margin: 50px;
+    border-radius: 50%;
+    background: white;
+    width: 200px;
+    height: 200px;
+    z-index: -1;
+    transform: scale(0.5);
+    box-shadow: inset 8px 8px 12px #b6cae4;
+}
+
+#startStopDiv {
+    margin-top: 1.5em;
+}
+
+.btn {
+    margin-inline: 1em;
+}
+
+.inline {
+    display: flex;
+    flex-direction: row;
+}
+
+span {
+    margin-left: -16px;
+    margin-top: 0.4em;
+    color: rgb(189, 189, 189);
+}
